@@ -133,7 +133,6 @@ class ConversationEvaluator:
             "call_completion": self._score_call_completion(session, analysis),
         }
 
-        # Calculate overall as weighted average
         weights = {
             "requirement_understanding": 0.15,
             "property_relevance": 0.20,

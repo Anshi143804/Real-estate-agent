@@ -1,9 +1,3 @@
-import CONFIG from "./config.js";
-
-/* =========================================================================
-   Small helpers
-   ========================================================================= */
-
 const $ = (id) => document.getElementById(id);
 
 function escapeHtml(str) {
@@ -52,7 +46,6 @@ const AGENT_STATUS_COPY = {
   finished: ["Call finished", "Thanks for talking with Nova."],
 };
 
-// Collapse fine-grained backend statuses into the 4 core orb animation states.
 const ORB_STATE_MAP = {
   idle: "idle",
   listening: "listening",
@@ -65,9 +58,6 @@ const ORB_STATE_MAP = {
   finished: "idle",
 };
 
-/* =========================================================================
-   Main application
-   ========================================================================= */
 
 class VoiceAgent {
   constructor() {
@@ -83,11 +73,10 @@ class VoiceAgent {
     this.isConnected = false;
     this.isConnecting = false;
 
-    // conversation state, kept so we can render the end-of-call summary
     this.transcriptOrder = [];
     this.transcriptById = new Map();
-    this.interimMessagesById = new Map(); // track interim content but don't show it
-    this.properties = new Map(); // property_id -> property
+    this.interimMessagesById = new Map();
+    this.properties = new Map();
     this.activityLog = [];
     this.booking = null;
     this.report = null;
@@ -96,9 +85,6 @@ class VoiceAgent {
     this.initializeUI();
   }
 
-  /* ---------------------------------------------------------------- */
-  /* UI wiring                                                        */
-  /* ---------------------------------------------------------------- */
 
   initializeUI() {
     this.appEl = $("app");
@@ -118,12 +104,12 @@ class VoiceAgent {
 
     this.transcriptEl = $("transcript");
     this.transcriptEmpty = $("transcript-empty");
-    this.transcriptPanel = $("panel-transcript"); // actual scroll container
+    this.transcriptPanel = $("panel-transcript"); 
 
     this.propertiesEl = $("properties");
     this.propertiesEmpty = $("properties-empty");
     this.propertiesCountBadge = $("properties-count");
-    this.propertiesPanel = $("panel-properties"); // actual scroll container
+    this.propertiesPanel = $("panel-properties");
     this.propertiesToolbar = $("properties-toolbar");
     this.propertiesTotalEl = $("properties-total");
     this.propertiesSortEl = $("properties-sort");
@@ -131,8 +117,7 @@ class VoiceAgent {
 
     this.activityEl = $("activity");
     this.activityEmpty = $("activity-empty");
-    this.activityPanel = $("panel-activity"); // actual scroll container
-
+    this.activityPanel = $("panel-activity")
     this.bookingCard = $("booking-card");
 
     this.summaryOverlay = $("summary-overlay");
@@ -191,10 +176,6 @@ class VoiceAgent {
     }, 4000);
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Call lifecycle                                                    */
-  /* ---------------------------------------------------------------- */
-
   handleCallButton() {
     if (this.isConnected) {
       this.endConversation();
@@ -217,8 +198,6 @@ class VoiceAgent {
   async createPeerConnection() {
     this.pc = new RTCPeerConnection({ iceServers: CONFIG.ICE_SERVERS });
 
-    // Data channel must be created before the offer so the backend (aiortc)
-    // receives a "datachannel" event and can start pushing events.
     this.dataChannel = this.pc.createDataChannel("pipecat");
     this.dataChannel.onmessage = (event) => this.handleDataChannelMessage(event.data);
     this.dataChannel.onopen = () => console.log("Data channel open");
@@ -237,22 +216,12 @@ class VoiceAgent {
     this.pc.onconnectionstatechange = () => {
       const state = this.pc.connectionState;
 
-      // "failed" / "closed" are terminal - act immediately.
       if (state === "failed" || state === "closed") {
         clearTimeout(this._disconnectGraceTimer);
         if (this.isConnected) this.handleUnexpectedDisconnect();
         return;
       }
 
-      // "disconnected" is explicitly a *transient* WebRTC state (brief
-      // ICE/network hiccups) that very often self-heals back to
-      // "connected" within a few seconds without the call actually being
-      // interrupted. Tearing the call down the instant it appears was
-      // causing the UI to show "disconnected" / "Start call" mid-call
-      // even though the user was still actively talking. Give it a
-      // short grace window, driven entirely by this same
-      // pc.connectionState signal, to recover before treating it as a
-      // real disconnect.
       if (state === "disconnected") {
         if (!this._disconnectGraceTimer) {
           this._disconnectGraceTimer = setTimeout(() => {
@@ -265,8 +234,7 @@ class VoiceAgent {
         return;
       }
 
-      // Recovered (state is back to "connected" or "connecting") -
-      // cancel any pending grace-period teardown.
+
       if (state === "connected") {
         clearTimeout(this._disconnectGraceTimer);
         this._disconnectGraceTimer = null;
@@ -367,7 +335,6 @@ class VoiceAgent {
     this.setConnBadge("disconnected", "Not connected");
     this.setAgentState("finished");
 
-    // Only show the polished summary screen for calls that actually connected.
     if (durationSeconds > 0) {
       this.showSummaryOverlay(durationSeconds, hadReport);
     }
@@ -392,7 +359,6 @@ class VoiceAgent {
   resetForNewCall() {
     this.summaryOverlay.hidden = true;
 
-    // clear conversation state
     this.transcriptOrder = [];
     this.transcriptById.clear();
     this.properties.clear();
@@ -453,10 +419,6 @@ class VoiceAgent {
     this.agentSubstatusEl.textContent = sub;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Data channel event handling                                      */
-  /* ---------------------------------------------------------------- */
-
   handleDataChannelMessage(raw) {
     let data;
     try {
@@ -475,7 +437,6 @@ class VoiceAgent {
         break;
 
       case "user_speaking":
-        // Reflected purely through agent_status for now (listening state).
         break;
 
       case "transcript":
@@ -515,23 +476,15 @@ class VoiceAgent {
     }
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Transcript                                                        */
-  /* ---------------------------------------------------------------- */
 
   upsertTranscriptMessage({ id, role, text, final }) {
     this.transcriptEmpty.hidden = true;
 
-    // Buffer interim content internally but do NOT display interim messages.
-    // This prevents multiple streaming chunks from appearing as separate
-    // transcript entries. Only final messages get rendered to the UI.
     if (!final) {
-      // Store interim content for reference, but don't create a visible message
       this.interimMessagesById.set(id, { role, text, timestamp: new Date() });
-      return; // Do not create a DOM row for interim content
+      return;
     }
 
-    // Only final messages get rendered
     let row = this.transcriptById.get(id);
     if (!row) {
       row = document.createElement("div");
@@ -546,23 +499,17 @@ class VoiceAgent {
       this.transcriptEl.appendChild(row);
       this.transcriptById.set(id, row);
       this.transcriptOrder.push(id);
-      // Clean up interim buffer for this message
       this.interimMessagesById.delete(id);
     }
 
     const bubble = row.querySelector(".bubble");
     bubble.textContent = text;
 
-    // Auto-scroll the actual scrolling container (the .tab-panel wrapper
-    // has overflow-y: auto; #transcript itself does not scroll).
     if (this.transcriptPanel) {
       this.transcriptPanel.scrollTop = this.transcriptPanel.scrollHeight;
     }
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Tool activity                                                     */
-  /* ---------------------------------------------------------------- */
 
   upsertActivity({ tool, label, status }) {
     this.activityEmpty.hidden = true;
@@ -592,7 +539,6 @@ class VoiceAgent {
       const labelEl = item.querySelector(".activity-label");
       labelEl.textContent = status === "error" ? `${label} — couldn't complete` : label.replace(/\.\.\.$/, "");
     } else {
-      // completed/error arrived without a matching started event
       item = document.createElement("div");
       item.className = "activity-item";
       item.dataset.status = status;
@@ -611,25 +557,14 @@ class VoiceAgent {
     }
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Properties                                                        */
-  /* ---------------------------------------------------------------- */
 
   renderProperties({ source, properties, summary }) {
     if (!properties || !properties.length) return;
 
-    // Defensive de-dup: ignore an identical batch (same source + same
-    // property ids) if it was the most recent thing rendered, in case the
-    // same event is ever delivered more than once.
     const signature = `${source}:${properties.map((p) => p.property_id).sort().join(",")}`;
     if (signature === this._lastPropertiesSignature) return;
     this._lastPropertiesSignature = signature;
 
-    // Merge into the persistent shortlist (this.properties is the single
-    // source of truth for the Properties tab). Object.assign only touches
-    // keys actually present on the incoming object, so a later "details"
-    // or "comparison" hit for a property already found via search can't
-    // wipe out fields like match_score/highlights that only search sends.
     const now = Date.now();
     properties.forEach((p) => {
       const existing = this.properties.get(p.property_id);
@@ -643,26 +578,15 @@ class VoiceAgent {
     this.propertiesCountBadge.hidden = false;
     this.propertiesCountBadge.textContent = this.properties.size;
 
-    // Surface new results to the user without forcing a tab switch away
-    // from an active conversation — just a gentle visual nudge.
     const propTab = document.querySelector('.tab[data-tab="properties"]');
     if (!document.getElementById("panel-properties").classList.contains("active")) {
       propTab.style.color = "var(--gold)";
       setTimeout(() => (propTab.style.color = ""), 2500);
     }
 
-    // "Tell me more about this property" and "compare properties" are
-    // about one or two specific listings the buyer is actively focused
-    // on, so drop real image cards straight into the conversation itself
-    // rather than making them switch to the Properties tab to see photos.
     if (source === "details" || source === "comparison") {
       this.renderPropertyChatCards(properties, summary);
     }
-
-    // A fresh search is framed conversationally: surface the strongest
-    // few matches from THIS batch right in the transcript, and keep the
-    // complete, ever-growing result set (across every location searched
-    // this call) browsable in the Properties tab.
     if (source === "search") {
       this.renderTopMatchesInChat(properties);
     }
@@ -670,9 +594,6 @@ class VoiceAgent {
     this.rebuildPropertiesTab();
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Properties tab — persistent shortlist, grouped by location         */
-  /* ---------------------------------------------------------------- */
 
   cityOf(p) {
     const candidates = [p.city, p.locality, p.location, p.area, p.address, p.postcode]
@@ -717,13 +638,6 @@ class VoiceAgent {
     return sorted;
   }
 
-  /**
-   * Rebuilds the entire Properties tab from `this.properties` (the running
-   * shortlist), grouped by location so results from every city searched
-   * this call stay browsable side by side rather than overwriting each
-   * other. Cheap enough to redo in full on every update given call-sized
-   * result counts.
-   */
   rebuildPropertiesTab() {
     if (!this.properties.size) {
       this.propertiesToolbar.hidden = true;
@@ -734,9 +648,6 @@ class VoiceAgent {
     this.propertiesToolbar.hidden = false;
     this.propertiesTotalEl.textContent = `${this.properties.size} propert${this.properties.size === 1 ? "y" : "ies"} found`;
 
-    // Group by location, preserving the order locations were first
-    // discovered in (so the section list grows naturally as the buyer's
-    // conversation moves from one area to another).
     const groups = new Map();
     this.properties.forEach((p) => {
       const city = this.cityOf(p);
@@ -997,16 +908,7 @@ class VoiceAgent {
     this.propertyModalOverlay.hidden = true;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Top matches inline in chat (search results)                       */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * Surfaces the strongest few results from a fresh search directly in
-   * the transcript — using the backend's own match_score/order, never a
-   * frontend-invented ranking. The full batch still lands in the
-   * Properties tab via rebuildPropertiesTab().
-   */
+   
   renderTopMatchesInChat(properties) {
     this.transcriptEmpty.hidden = true;
 
@@ -1184,23 +1086,12 @@ class VoiceAgent {
     return wrap;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Property image cards inline in the chat/transcript                */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * Drops one card per property directly into the transcript, each with
-   * its real listing photos at a normal, viewable size (not thumbnails)
-   * and a plain "Visit property page" link underneath. Used for the
-   * "tell me more about this property" and "compare properties" flows.
-   */
   renderPropertyChatCards(properties, summary) {
     this.transcriptEmpty.hidden = true;
 
     const timeNow = () => new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-    // For a comparison of several properties, show the one-line summary
-    // as a normal chat bubble first, then a card per property below it.
+
     if (summary && properties.length > 1) {
       const summaryRow = document.createElement("div");
       summaryRow.className = "bubble-row role-assistant";
@@ -1276,9 +1167,6 @@ class VoiceAgent {
     }
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Booking                                                           */
-  /* ---------------------------------------------------------------- */
 
   renderBooking(booking) {
     if (!booking) return;
@@ -1291,7 +1179,7 @@ class VoiceAgent {
 
     this.bookingCard.hidden = false;
     this.bookingCard.innerHTML = `
-      <span class="booking-title">📅 Viewing scheduled</span>
+      <span class="booking-title"> Viewing scheduled</span>
       <span class="booking-main">${escapeHtml(propTitle)}</span>
       <span class="booking-meta">
         <span>${escapeHtml(formatDateTime(booking.scheduled_datetime))}</span>
@@ -1301,9 +1189,7 @@ class VoiceAgent {
     `;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* End-of-call summary                                               */
-  /* ---------------------------------------------------------------- */
+
 
   showSummaryOverlay(durationSeconds, hadReport) {
     this.summaryDuration.textContent = `Duration — ${formatClock(durationSeconds)}`;

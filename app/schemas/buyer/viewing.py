@@ -39,7 +39,6 @@ class ScheduleViewingRequest(BaseModel):
         pref_date = values.get("preferred_date")
         pref_time = values.get("preferred_time", "12:00")
 
-        # 1. If LLM passed preferred_date and preferred_time, combine them
         if pref_date and not pref_datetime:
             combined_str = f"{pref_date} {pref_time}"
             for fmt in ("%Y-%m-%d %H:%M", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %I:%M %p"):
@@ -49,7 +48,6 @@ class ScheduleViewingRequest(BaseModel):
                 except ValueError:
                     pass
 
-        # 2. If preferred_datetime was passed as a string, parse it into datetime
         elif isinstance(pref_datetime, str):
             for fmt in ("%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
                 try:
@@ -58,7 +56,6 @@ class ScheduleViewingRequest(BaseModel):
                 except ValueError:
                     pass
 
-        # 3. Fallback: if no valid datetime could be parsed, set default
         if not values.get("preferred_datetime"):
             values["preferred_datetime"] = datetime.utcnow()
 

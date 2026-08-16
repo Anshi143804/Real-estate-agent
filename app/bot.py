@@ -6,7 +6,6 @@ from typing import Optional, Union
 
 from loguru import logger
 
-# Pipecat core pipeline & transports
 from pipecat.audio.vad.silero import SileroVADAnalyzer
 from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
@@ -16,25 +15,20 @@ from pipecat.transports.smallwebrtc.transport import SmallWebRTCTransport
 from pipecat.transports.smallwebrtc.connection import SmallWebRTCConnection, IceServer
 from pipecat.transports.base_transport import TransportParams
 
-# Pipecat AI Services
 from pipecat.services.cartesia.tts import CartesiaTTSService
 from pipecat.services.deepgram.stt import DeepgramSTTService
 from pipecat.services.google.llm import GoogleLLMService
 
-# Pipecat Context & Aggregators
 from pipecat.processors.aggregators.llm_context import LLMContext
 from pipecat.processors.aggregators.llm_response_universal import (
     LLMContextAggregatorPair,
 )
 
-# Application Event Logger
 from app.services.logger import PipecatEventLogger
 from app.services.event_bridge import EventBridgeObserver
 
-# Pipecat Flows framework
 from pipecat.flows import FlowManager
 
-# Application Modules
 from app.config import config
 from app.flows.buyer_flow import greeting_node
 from app.flows.handlers import (
@@ -48,7 +42,6 @@ from app.flows.handlers import (
 )
 
 
-# Dictionary mapping Pipecat action names directly to handler functions
 HANDLERS = {
     "proceed_to_requirements_handler": proceed_to_requirements_handler,
     "property_search_handler": property_search_handler,
@@ -69,7 +62,6 @@ async def run_bot(
     logger.info(f"Initializing Voice Agent session: {session_id}")
 
     try:
-        # 1. Initialize AI Services
         stt_service = DeepgramSTTService(
             api_key=config.DEEPGRAM_API_KEY, 
             model="nova-2-general"
@@ -85,7 +77,6 @@ async def run_bot(
             settings=CartesiaTTSService.Settings(voice=config.CARTESIA_VOICE_ID),
         )
 
-        # 2. Setup Context & Aggregators
         context = LLMContext()
 
         context_aggregator = LLMContextAggregatorPair(context)
@@ -93,7 +84,6 @@ async def run_bot(
         user_aggregator = context_aggregator.user()
         assistant_aggregator = context_aggregator.assistant()
 
-        # 3. Instantiate Event Logger Processor
         event_logger = PipecatEventLogger()
 
         # 4. Setup Transport
@@ -122,7 +112,6 @@ async def run_bot(
                 ),
             )
 
-        # 5. Construct Pipeline
         pipeline = Pipeline(
             [
         transport.input(),
@@ -137,8 +126,6 @@ async def run_bot(
             ]
         )
 
-        # Bridges pipeline events (transcript, tool activity, properties,
-        # bookings, summary) to the browser over the WebRTC data channel.
         event_bridge = EventBridgeObserver(connection=conn, session_id=session_id)
 
         task = PipelineTask(
@@ -150,7 +137,6 @@ async def run_bot(
             observers=[event_bridge],
         )
 
-        # 6. Initialize FlowManager & Register Action Handlers
         flow_manager = FlowManager(
             worker=task,
             llm=llm_service,
@@ -158,7 +144,6 @@ async def run_bot(
             transport=transport,
         )
 
-        # Register handlers directly
         for action_type, handler_func in HANDLERS.items():
             flow_manager.register_action(action_type, handler_func)
 
@@ -171,11 +156,6 @@ async def run_bot(
 
             event_bridge.send_call_started()
 
-            # Create the DB row for this call up front (by a real UUID) so
-            # conversation_analysis_handler / finalize_conversation_handler
-            # can find and update it later. Stored on flow_manager.state so
-            # handlers can read it without needing it passed as an LLM tool
-            # argument (the model never sees or invents this id).
             from app.db.database import SessionLocal
             from app.db.crud.conversation import conversation_repo
             import uuid as _uuid
@@ -189,12 +169,6 @@ async def run_bot(
             finally:
                 db.close()
 
-            # 1. Initialize the flow node state. greeting_node() has
-            # respond_immediately=True, so this alone makes the LLM
-            # generate and speak its own opening line - no separate
-            # scripted TTSSpeakFrame is needed here (an earlier version
-            # queued one, which played concurrently with the flow's own
-            # greeting and produced a garbled, duplicated intro).
             await flow_manager.initialize(greeting_node())
         @transport.event_handler("on_client_disconnected")
         async def on_client_disconnected(transport_obj, client):
@@ -203,7 +177,6 @@ async def run_bot(
             await asyncio.sleep(0.5)
             await task.cancel()
 
-        # 8. Execution
         runner = PipelineRunner()
         logger.info("🚀 Voice Agent Pipeline running...")
         await runner.run(task)

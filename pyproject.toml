@@ -45,7 +45,7 @@ dependencies = [
     # Email
     # -----------------------------
     "resend>=2.13.1",
-    "pipecat-ai[cartesia,google,smallwebrtc,webrtc]>=1.6.0",
+    "pipecat-ai[cartesia,google,smallwebrtc,soniox,webrtc]>=1.6.0",
     "openai>=2.50.0",
     "deepgram-sdk>=7.6.0",
     "cartesia>=3.5.1",

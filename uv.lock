@@ -749,7 +749,7 @@ requires-dist = [
     { name = "lxml", specifier = ">=6.1.1" },
     { name = "openai", specifier = ">=2.50.0" },
     { name = "orjson", specifier = ">=3.11.2" },
-    { name = "pipecat-ai", extras = ["cartesia", "google", "smallwebrtc", "webrtc"], specifier = ">=1.6.0" },
+    { name = "pipecat-ai", extras = ["cartesia", "google", "smallwebrtc", "soniox", "webrtc"], specifier = ">=1.6.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.10" },
     { name = "pydantic", extras = ["email"], specifier = ">=2.11.7" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },

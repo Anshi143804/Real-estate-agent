@@ -13,15 +13,8 @@ from sqlalchemy import MetaData, Table, inspect, select
 from app.db.database import engine
 
 
-# ============================================================
-# CONFIG
-# ============================================================
-
 OUTPUT_FILE = Path("conversation_db_export.json")
 
-# Tables we want to export.
-#
-# The script automatically checks which of these actually exist.
 TABLES_TO_EXPORT = [
 #    "conversations",
 #    "conversation_messages",
@@ -31,14 +24,8 @@ TABLES_TO_EXPORT = [
 ]
 
 
-# ============================================================
-# JSON SERIALIZATION
-# ============================================================
-
 def json_serializer(value):
-    """
-    Convert PostgreSQL/Python values into JSON-safe values.
-    """
+    """Convert PostgreSQL/Python values into JSON-safe values."""
 
     if isinstance(value, (datetime, date)):
         return value.isoformat()

@@ -9,17 +9,10 @@ from pydantic import BaseModel, Field, HttpUrl
 
 
 class PropertyDetailsRequest(BaseModel):
-    """Request for fetching complete details of a property."""
-
     property_id: str
 
 
 class PropertyDetailsResponse(BaseModel):
-    """Complete property details returned to the AI."""
-
-    # =========================================================
-    # IDENTITY
-    # =========================================================
 
     property_id: str
 
@@ -28,10 +21,6 @@ class PropertyDetailsResponse(BaseModel):
     title: str
 
     description: Optional[str] = None
-
-    # =========================================================
-    # LISTING
-    # =========================================================
 
     price: Decimal
 
@@ -45,10 +34,6 @@ class PropertyDetailsResponse(BaseModel):
 
     status: Optional[str] = None
 
-    # =========================================================
-    # LOCATION
-    # =========================================================
-
     address: Optional[str] = None
 
     city: Optional[str] = None
@@ -57,9 +42,6 @@ class PropertyDetailsResponse(BaseModel):
 
     postcode: Optional[str] = None
 
-    # =========================================================
-    # PROPERTY
-    # =========================================================
 
     bedrooms: Optional[int] = None
 
@@ -69,9 +51,6 @@ class PropertyDetailsResponse(BaseModel):
 
     area_sqft: Optional[float] = None
 
-    # =========================================================
-    # FEATURES
-    # =========================================================
 
     furnished: Optional[str] = None
 
@@ -89,17 +68,10 @@ class PropertyDetailsResponse(BaseModel):
 
     pets_allowed: Optional[bool] = None
 
-    # =========================================================
-    # SALE INFORMATION
-    # =========================================================
-
     tenure: Optional[str] = None
 
     epc_rating: Optional[str] = None
 
-    # =========================================================
-    # FLEXIBLE DATA
-    # =========================================================
 
     amenities: List[str] = Field(
         default_factory=list
@@ -109,20 +81,11 @@ class PropertyDetailsResponse(BaseModel):
         default_factory=list
     )
 
-    # =========================================================
-    # AGENT
-    # =========================================================
 
     agent_name: Optional[str] = None
 
-    # =========================================================
-    # RENTAL
-    # =========================================================
 
     available_from: Optional[str] = None
 
-    # =========================================================
-    # SOURCE
-    # =========================================================
 
     property_url: HttpUrl

@@ -1,7 +1,3 @@
-"""
-Schemas for the find_matching_properties tool.
-"""
-
 from decimal import Decimal
 from typing import List, Optional
 
@@ -9,11 +5,6 @@ from pydantic import BaseModel, Field, HttpUrl
 
 
 class PropertySearchRequest(BaseModel):
-    """Requirements collected from the buyer/renter conversation."""
-
-    # =========================================================
-    # LOCATION
-    # =========================================================
 
     city: str = Field(
         ...,
@@ -24,10 +15,6 @@ class PropertySearchRequest(BaseModel):
         default=None,
         description="Preferred locality, neighborhood, or area",
     )
-
-    # =========================================================
-    # PROPERTY
-    # =========================================================
 
     property_type: Optional[str] = Field(
         default=None,
@@ -42,10 +29,6 @@ class PropertySearchRequest(BaseModel):
         description="Whether the user wants to buy or rent: sale or rent",
     )
 
-    # =========================================================
-    # BUDGET
-    # =========================================================
-
     min_budget: Optional[Decimal] = Field(
         default=None,
         description="Minimum purchase price or monthly rent",
@@ -55,10 +38,6 @@ class PropertySearchRequest(BaseModel):
         default=None,
         description="Maximum purchase price or monthly rent",
     )
-
-    # =========================================================
-    # ROOMS
-    # =========================================================
 
     min_bedrooms: Optional[int] = Field(
         default=None,
@@ -75,10 +54,6 @@ class PropertySearchRequest(BaseModel):
         description="Minimum number of reception rooms",
     )
 
-    # =========================================================
-    # PROPERTY SIZE
-    # =========================================================
-
     min_area_sqft: Optional[float] = Field(
         default=None,
         description="Minimum property size in square feet",
@@ -88,10 +63,6 @@ class PropertySearchRequest(BaseModel):
         default=None,
         description="Maximum property size in square feet",
     )
-
-    # =========================================================
-    # RENTAL
-    # =========================================================
 
     furnished: Optional[str] = Field(
         default=None,
@@ -104,10 +75,6 @@ class PropertySearchRequest(BaseModel):
         default=None,
         description="Whether pets must be allowed",
     )
-
-    # =========================================================
-    # FEATURES
-    # =========================================================
 
     parking: Optional[bool] = Field(
         default=None,
@@ -134,18 +101,10 @@ class PropertySearchRequest(BaseModel):
         description="Whether a terrace is required",
     )
 
-    # =========================================================
-    # SALE
-    # =========================================================
-
     tenure: Optional[str] = Field(
         default=None,
         description="Freehold or leasehold",
     )
-
-    # =========================================================
-    # OTHER FEATURES
-    # =========================================================
 
     features: List[str] = Field(
         default_factory=list,
@@ -158,25 +117,10 @@ class PropertySearchRequest(BaseModel):
 
 
 class MatchedProperty(BaseModel):
-    """
-    Property summary shown to the buyer or renter.
-
-    property_id and property_url are kept in the structured
-    response for the application/UI. They should not be spoken
-    aloud by the voice agent.
-    """
-
-    # =========================================================
-    # IDENTITY
-    # =========================================================
 
     property_id: str
 
     title: str
-
-    # =========================================================
-    # PRICE
-    # =========================================================
 
     price: Decimal
 
@@ -184,17 +128,9 @@ class MatchedProperty(BaseModel):
 
     price_period: Optional[str] = None
 
-    # =========================================================
-    # LOCATION
-    # =========================================================
-
     location: str
 
     postcode: Optional[str] = None
-
-    # =========================================================
-    # PROPERTY
-    # =========================================================
 
     bedrooms: int
 
@@ -203,10 +139,6 @@ class MatchedProperty(BaseModel):
     property_type: str
 
     area_sqft: Optional[float] = None
-
-    # =========================================================
-    # FEATURES
-    # =========================================================
 
     furnished: Optional[str] = None
 
@@ -218,10 +150,6 @@ class MatchedProperty(BaseModel):
 
     terrace: Optional[bool] = None
 
-    # =========================================================
-    # IMPORTANT / UNIQUE FEATURES
-    # =========================================================
-
     highlights: List[str] = Field(
         default_factory=list,
         description=(
@@ -231,17 +159,9 @@ class MatchedProperty(BaseModel):
         ),
     )
 
-    # =========================================================
-    # FRONTEND
-    # =========================================================
-
     property_url: HttpUrl
 
     image_url: Optional[HttpUrl] = None
-
-    # =========================================================
-    # MATCHING
-    # =========================================================
 
     match_score: float = Field(
         ...,
@@ -252,7 +172,6 @@ class MatchedProperty(BaseModel):
 
 
 class PropertySearchResponse(BaseModel):
-    """Response returned by the search tool."""
 
     total_matches: int
 

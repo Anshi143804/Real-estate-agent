@@ -1,25 +1,17 @@
 import asyncio
 import uuid
+import os
 from fastapi import FastAPI, HTTPException, Request, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import uvicorn
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
-# WebRTC Connection imports from Pipecat
 from pipecat.transports.smallwebrtc.connection import SmallWebRTCConnection, IceServer
 
-# Import the runner function from bot.py
 from app.bot import run_bot
-
-
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
-import os
 
 app = FastAPI(title="Nova Real Estate AI Voice Agent")
 
-# Allow CORS so WebRTC connection requests pass smoothly
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -69,17 +61,9 @@ for _route, (_filename, _media_type) in _FRONTEND_ASSETS.items():
 async def connect(request: Request):
     try:
         body = await request.json()
-        
-        # 1. Instantiate SmallWebRTC Connection
         conn = SmallWebRTCConnection()
-        
-        # 2. Launch Pipecat Bot Task in background
         asyncio.create_task(run_bot(transport_or_webrtc_conn=conn))
-        
-        # 3. ✅ FIX: Call initialize() with sdp and type instead of handle_offer()
         answer = await conn.initialize(sdp=body["sdp"], type=body["type"])
-        
-        # Return answer dictionary to frontend
         return JSONResponse(answer)
         
     except Exception as e:

@@ -3,16 +3,12 @@ import asyncio
 from datetime import datetime
 from loguru import logger
 
-# DB Session Factory
 from app.db.database import SessionLocal
-
-# Pydantic Schemas used by database tools
 from app.schemas.buyer.property_search import PropertySearchRequest
 from app.schemas.buyer.property_details import PropertyDetailsRequest
 from app.schemas.buyer.property_comparison import PropertyComparisonRequest
 from app.schemas.buyer.viewing import ScheduleViewingRequest
 
-# Business & Database Tool Functions
 from app.db.crud.conversation import conversation_repo
 from app.services.call_analysis import ConversationAnalyzer
 from app.tools.buyer.property_search import find_matching_properties
@@ -187,9 +183,6 @@ async def property_search_handler(
 
     return serialized_result, property_discussion_node()
 
-# ==========================================================
-# Property Details
-# ==========================================================
 
 async def property_details_handler(
     args: dict[str, Any],
@@ -213,10 +206,6 @@ async def property_details_handler(
 
     return serialized_result, None
 
-
-# ==========================================================
-# Property Comparison
-# ==========================================================
 
 async def property_comparison_handler(
     args: dict[str, Any],
@@ -242,10 +231,6 @@ async def property_comparison_handler(
 
     return serialized_result, comparison_node()
 
-
-# ==========================================================
-# Schedule Viewing
-# ==========================================================
 
 async def schedule_viewing_handler(
     args: dict[str, Any],
@@ -276,9 +261,6 @@ async def schedule_viewing_handler(
 # Conversation Analysis
 # ==========================================================
 
-# app/flows/handlers.py
-
-# app/flows/handlers.py
 
 async def conversation_analysis_handler(
     args: dict[str, Any] = None,

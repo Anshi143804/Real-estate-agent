@@ -1,6 +1,3 @@
-// =========================
-// Backend Configuration
-// =========================
 
 const CONFIG = {
     BACKEND_URL: "http://localhost:7860",

@@ -9,37 +9,16 @@ from app.schemas.buyer.property_search import (
 from app.db.crud.property import property_repo
 
 
-# ============================================================
-# PROPERTY HIGHLIGHTS
-# ============================================================
-
 def build_property_highlights(p) -> list[str]:
     """
     Build important and distinctive property highlights using
     only information that actually exists in the database.
-
-    These highlights are intended to be used by:
-        - the frontend property card
-        - the AI voice agent
-
-    No property features are invented.
     """
 
     highlights: list[str] = []
 
-    # --------------------------------------------------------
-    # PROPERTY SIZE
-    # --------------------------------------------------------
-
     if p.area_sqft:
-
-        highlights.append(
-            f"{float(p.area_sqft):,.0f} sq ft"
-        )
-
-    # --------------------------------------------------------
-    # RECEPTION ROOMS
-    # --------------------------------------------------------
+        highlights.append(f"{float(p.area_sqft):,.0f} sq ft")
 
     if p.reception_rooms:
 
@@ -52,173 +31,63 @@ def build_property_highlights(p) -> list[str]:
             )
         )
 
-    # --------------------------------------------------------
-    # PARKING
-    # --------------------------------------------------------
-
     if p.parking:
-
         if p.parking_spaces:
-
-            highlights.append(
-                f"{p.parking_spaces} parking spaces"
-            )
-
+            highlights.append(f"{p.parking_spaces} parking spaces")
         else:
-
-            highlights.append(
-                "Parking"
-            )
-
-    # --------------------------------------------------------
-    # GARAGE
-    # --------------------------------------------------------
+            highlights.append("Parking")
 
     if p.garage:
-
-        highlights.append(
-            "Garage"
-        )
-
-    # --------------------------------------------------------
-    # GARDEN
-    # --------------------------------------------------------
+        highlights.append("Garage")
 
     if p.garden:
-
-        highlights.append(
-            "Garden"
-        )
-
-    # --------------------------------------------------------
-    # BALCONY
-    # --------------------------------------------------------
+        highlights.append("Garden")
 
     if p.balcony:
-
-        highlights.append(
-            "Balcony"
-        )
-
-    # --------------------------------------------------------
-    # TERRACE
-    # --------------------------------------------------------
+        highlights.append("Balcony")
 
     if p.terrace:
-
-        highlights.append(
-            "Terrace"
-        )
-
-    # --------------------------------------------------------
-    # FURNISHED
-    # --------------------------------------------------------
+        highlights.append("Terrace")
 
     if p.furnished:
-
-        highlights.append(
-            p.furnished
-            .replace("_", " ")
-            .title()
-        )
-
-    # --------------------------------------------------------
-    # PETS
-    # --------------------------------------------------------
+        highlights.append(p.furnished.replace("_", " ").title())
 
     if p.pets_allowed is True:
-
-        highlights.append(
-            "Pets allowed"
-        )
-
-    # --------------------------------------------------------
-    # TENURE
-    # --------------------------------------------------------
+        highlights.append("Pets allowed")
 
     if p.tenure:
-
-        highlights.append(
-            p.tenure.title()
-        )
-
-    # --------------------------------------------------------
-    # EPC
-    # --------------------------------------------------------
+        highlights.append(p.tenure.title())
 
     if p.epc_rating:
-
-        highlights.append(
-            f"EPC {p.epc_rating.upper()}"
-        )
-
-    # --------------------------------------------------------
-    # AMENITIES
-    # --------------------------------------------------------
+        highlights.append(f"EPC {p.epc_rating.upper()}")
 
     if p.amenities:
-
         for amenity in p.amenities:
-
+            if not amenity:
+                continue
+            amenity = str(amenity).strip()
             if not amenity:
                 continue
 
-            amenity = str(
-                amenity
-            ).strip()
-
-            if not amenity:
-                continue
-
-            # Avoid duplicate highlights
             if not any(
-                amenity.lower()
-                == existing.lower()
+                amenity.lower() == existing.lower()
                 for existing in highlights
             ):
-
-                highlights.append(
-                    amenity
-                )
-
-    # --------------------------------------------------------
-    # LIMIT NUMBER OF HIGHLIGHTS
-    # --------------------------------------------------------
+                highlights.append(amenity)
 
     return highlights[:6]
 
-
-# ============================================================
-# FIND MATCHING PROPERTIES
-# ============================================================
 
 def find_matching_properties(
     db: Session,
     request: PropertySearchRequest,
 ) -> PropertySearchResponse:
-    """
-    Search for properties matching the buyer/renter's
-    requirements.
-    """
-
-    # ========================================================
-    # SEARCH DATABASE
-    # ========================================================
+    """Search for properties matching the buyer/renter's requirements."""
 
     properties = property_repo.search(
         db=db,
-
-        # ----------------------------------------------------
-        # LOCATION
-        # ----------------------------------------------------
-
         city=request.city,
-
         locality=request.locality,
-
-        # ----------------------------------------------------
-        # PROPERTY TYPE
-        # ----------------------------------------------------
 
         property_type=request.property_type,
 
@@ -289,126 +158,30 @@ def find_matching_properties(
         # BUILD LOCATION
         # ----------------------------------------------------
 
-        location_parts = [
-            p.locality,
-            p.city,
-        ]
-
-        location = ", ".join(
-            part
-            for part in location_parts
-            if part
-        )
-
+        location_parts = [p.locality, p.city]
+        location = ", ".join(part for part in location_parts if part)
         if not location:
-
-            location = (
-                p.address
-                or "Unknown location"
-            )
-
-        # ----------------------------------------------------
-        # FIRST IMAGE
-        # ----------------------------------------------------
+            location = p.address or "Unknown location"
 
         image_url = None
+        if p.image_urls and isinstance(p.image_urls, list) and len(p.image_urls) > 0:
+            image_url = p.image_urls[0]
 
-        if p.image_urls:
-
-            if (
-                isinstance(
-                    p.image_urls,
-                    list,
-                )
-                and len(p.image_urls) > 0
-            ):
-
-                image_url = p.image_urls[0]
-
-        # ----------------------------------------------------
-        # BUILD HIGHLIGHTS
-        # ----------------------------------------------------
-
-        highlights = (
-            build_property_highlights(p)
-        )
-
-        # ----------------------------------------------------
-        # CREATE MATCHED PROPERTY
-        # ----------------------------------------------------
+        highlights = build_property_highlights(p)
 
         matched_properties.append(
             MatchedProperty(
-
-                # ------------------------------------------------
-                # INTERNAL IDENTIFIER
-                # ------------------------------------------------
-
-                property_id=str(
-                    p.id
-                ),
-
-                # ------------------------------------------------
-                # BASIC INFORMATION
-                # ------------------------------------------------
-
+                property_id=str(p.id),
                 title=p.title,
-
                 price=p.price,
-
-                currency=(
-                    p.currency
-                    or "GBP"
-                ),
-
-                price_period=(
-                    p.price_period
-                ),
-
-                # ------------------------------------------------
-                # LOCATION
-                # ------------------------------------------------
-
+                currency=p.currency or "GBP",
+                price_period=p.price_period,
                 location=location,
-
                 postcode=p.postcode,
-
-                # ------------------------------------------------
-                # ROOMS
-                # ------------------------------------------------
-
-                bedrooms=(
-                    p.bedrooms
-                    or 0
-                ),
-
-                bathrooms=(
-                    p.bathrooms
-                    or 0
-                ),
-
-                # ------------------------------------------------
-                # PROPERTY TYPE
-                # ------------------------------------------------
-
-                property_type=(
-                    p.property_type
-                    or "Property"
-                ),
-
-                # ------------------------------------------------
-                # SIZE
-                # ------------------------------------------------
-
-                area_sqft=(
-                    float(p.area_sqft)
-                    if p.area_sqft is not None
-                    else None
-                ),
-
-                # ------------------------------------------------
-                # FEATURES
-                # ------------------------------------------------
+                bedrooms=p.bedrooms or 0,
+                bathrooms=p.bathrooms or 0,
+                property_type=p.property_type or "Property",
+                area_sqft=float(p.area_sqft) if p.area_sqft is not None else None,
 
                 furnished=p.furnished,
 
@@ -420,47 +193,14 @@ def find_matching_properties(
 
                 terrace=p.terrace,
 
-                # ------------------------------------------------
-                # IMPORTANT / UNIQUE FEATURES
-                # ------------------------------------------------
-
                 highlights=highlights,
-
-                # ------------------------------------------------
-                # FRONTEND ONLY
-                #
-                # Keep these in the structured response so the
-                # frontend can display them.
-                #
-                # Nova should NOT read these aloud.
-                # ------------------------------------------------
-
-                property_url=(
-                    p.listing_url
-                ),
-
+                property_url=p.listing_url,
                 image_url=image_url,
-
-                # ------------------------------------------------
-                # MATCH SCORE
-                #
-                # Currently every result gets 1.0.
-                # We can implement real scoring later.
-                # ------------------------------------------------
-
                 match_score=1.0,
             )
         )
 
-    # ========================================================
-    # RETURN SEARCH RESPONSE
-    # ========================================================
-
     return PropertySearchResponse(
-
-        total_matches=len(
-            matched_properties
-        ),
-
+        total_matches=len(matched_properties),
         properties=matched_properties,
     )

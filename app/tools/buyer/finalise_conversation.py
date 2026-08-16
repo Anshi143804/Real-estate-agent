@@ -75,18 +75,10 @@ def finalize_conversation(
     if session is None:
         raise ValueError(f"Conversation '{session_id}' not found.")
 
-    # `report` may arrive either as a ConversationReport instance (normal
-    # path, from ConversationAnalyzer.analyze) or as a plain dict (e.g. if
-    # it came from an LLM tool-call argument via finalize_conversation_handler).
-    # Normalize so the attribute access below always works.
     if isinstance(report, dict):
         report = ConversationReport.model_validate(report)
 
     report_json = report.model_dump(mode="json")
-
-    # -------------------------
-    # conversation_sessions
-    # -------------------------
 
     session = conversation_repo.update_summary(
         db=db,

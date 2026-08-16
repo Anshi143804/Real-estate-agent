@@ -9,15 +9,11 @@ Responsibilities:
 """
 
 import os
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
-
-# Load environment variables
-load_dotenv()
-from urllib.parse import quote_plus
-import os
 
 load_dotenv()
 
@@ -37,21 +33,19 @@ DATABASE_URL = (
 if not DATABASE_URL:
     raise ValueError("DATABASE_URL is not set in the environment.")
 
-# SQLAlchemy Engine
 engine = create_engine(
     DATABASE_URL,
-    echo=True,          # Prints SQL queries during development
-    pool_pre_ping=True  # Prevents stale DB connections
+    echo=True,
+    pool_pre_ping=True
 )
 
-# Session Factory
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine,
 )
 
-# Base class for all ORM models
+
 class Base(DeclarativeBase):
     pass
 

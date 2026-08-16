@@ -86,15 +86,11 @@ class EventBridgeObserver(BaseObserver):
         # real UUID from Pipecat, not a memory address, so it's safe.
         self._seen_tool_call_events: set = set()
 
-    # ------------------------------------------------------------------
-    # Helpers
-    # ------------------------------------------------------------------
-
     def _send(self, payload: dict):
         try:
             payload.setdefault("ts", time.time())
             self._connection.send_app_message(payload)
-        except Exception as e:  # never let telemetry break the call
+        except Exception as e:
             logger.debug(f"[EventBridge] failed to send app message: {e}")
 
     def send_call_started(self):
@@ -103,15 +99,10 @@ class EventBridgeObserver(BaseObserver):
     def send_call_ended(self):
         self._send({"type": "call_ended"})
 
-    # ------------------------------------------------------------------
-    # Observer entrypoint
-    # ------------------------------------------------------------------
-
     async def on_push_frame(self, data: FramePushed):
         frame = data.frame
 
         try:
-            # ---------------- User speech state ----------------
             if isinstance(frame, UserStartedSpeakingFrame):
                 self._current_user_id = f"user-{uuid.uuid4().hex[:8]}"
                 self._send({"type": "user_speaking", "speaking": True})
