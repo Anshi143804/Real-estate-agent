@@ -1,0 +1,82 @@
+[project]
+name = "estate-ai-assistant"
+version = "0.1.0"
+description = "AI-powered real estate assistant built with FastAPI, Pipecat Flows, Gemini, PostgreSQL, and WebSockets."
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    # -----------------------------
+    # Web Framework
+    # -----------------------------
+    "fastapi>=0.116.1",
+    "uvicorn[standard]>=0.35.0",
+    # -----------------------------
+    # Database
+    # -----------------------------
+    "sqlalchemy>=2.0.43",
+    "psycopg[binary]>=3.2.10",
+    "alembic>=1.16.5",
+    # -----------------------------
+    # Validation
+    # -----------------------------
+    "pydantic[email]>=2.11.7",
+    "pydantic-settings>=2.10.1",
+    # -----------------------------
+    # Environment
+    # -----------------------------
+    "python-dotenv>=1.1.1",
+    # -----------------------------
+    # Pipecat
+    # -----------------------------
+    # -----------------------------
+    # Google Gemini
+    # -----------------------------
+    "google-genai>=1.31.0",
+    # -----------------------------
+    # Utilities
+    # -----------------------------
+    "httpx>=0.28.1",
+    "websockets>=15.0.1",
+    "python-multipart>=0.0.20",
+    "orjson>=3.11.2",
+    "loguru>=0.7.3",
+    # -----------------------------
+    # Email
+    # -----------------------------
+    "resend>=2.13.1",
+    "pipecat-ai[cartesia,google,smallwebrtc,webrtc]>=1.6.0",
+    "openai>=2.50.0",
+    "deepgram-sdk>=7.6.0",
+    "cartesia>=3.5.1",
+    "streamlit",
+    "streamlit-webrtc",
+    "beautifulsoup4>=4.15.0",
+    "lxml>=6.1.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.1.0",
+    "black>=25.1.0",
+    "isort>=6.0.1",
+    "ruff>=0.12.9",
+]
+
+[tool.black]
+line-length = 88
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 88
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

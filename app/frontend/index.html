@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Nova — AI Real Estate Consultant</title>
+<meta name="description" content="Talk with Nova, your personal architectural and real estate AI consultant. Explore listings, schedule viewings, and compare homes seamlessly via voice." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="app" id="app" data-agent-state="idle">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">N</span>
+      <div class="brand-text">
+        <span class="brand-name">Nova</span>
+        <span class="brand-sub">AI Real Estate Consultant</span>
+      </div>
+    </div>
+
+    <div class="topbar-right">
+      <div class="conn-badge" id="conn-badge" data-state="disconnected">
+        <span class="conn-dot" aria-hidden="true"></span>
+        <span id="conn-label">Not connected</span>
+      </div>
+      <span class="timer" id="timer" aria-label="Call timer">00:00</span>
+    </div>
+  </header>
+
+  <!-- ============ MAIN CONSULTATION STAGE ============ -->
+  <main class="stage" id="stage">
+
+    <!-- ---------- LEFT: Voice Consultation Pane ---------- -->
+    <section class="pane pane-voice" aria-label="Voice Consultation Controls">
+
+      <div class="voice-header-row">
+        <span class="voice-kicker">Live Consultation</span>
+        <span class="voice-spec-tag">CAD / VOICE 2.0</span>
+      </div>
+
+      <div class="voice-core">
+        <div class="architectural-visual-wrap" id="architectural-visual-wrap">
+          <svg class="architectural-plan" id="architectural-plan" viewBox="0 0 280 280" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <!-- Background blueprint grid & spatial axes -->
+            <defs>
+              <pattern id="cadGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="currentColor" class="grid-line" stroke-width="0.5" />
+              </pattern>
+            </defs>
+            <rect width="280" height="280" fill="url(#cadGrid)" class="cad-grid-bg" />
+
+            <!-- Concentric spatial boundary rings (subtle floorplan contours) -->
+            <circle class="contour-ring ring-outer" cx="140" cy="140" r="120" stroke="currentColor" stroke-dasharray="2 6" stroke-width="0.8" />
+            <circle class="contour-ring ring-mid" cx="140" cy="140" r="88" stroke="currentColor" stroke-width="0.75" />
+            <circle class="contour-ring ring-inner" cx="140" cy="140" r="54" stroke="currentColor" stroke-dasharray="3 4" stroke-width="0.75" />
+
+            <!-- Axis guide lines with dimension notches -->
+            <line class="axis-line axis-h" x1="20" y1="140" x2="260" y2="140" stroke="currentColor" stroke-width="0.7" />
+            <line class="axis-line axis-v" x1="140" y1="20" x2="140" y2="260" stroke="currentColor" stroke-width="0.7" />
+
+            <!-- Diagonal cross axis -->
+            <line class="axis-diag" x1="50" y1="50" x2="230" y2="230" stroke="currentColor" stroke-dasharray="1 8" stroke-width="0.6" />
+            <line class="axis-diag" x1="230" y1="50" x2="50" y2="230" stroke="currentColor" stroke-dasharray="1 8" stroke-width="0.6" />
+
+            <!-- Architectural Plot Geometry & Living Contour Polyline -->
+            <polygon class="plot-polygon" points="140,32 232,78 248,178 184,242 82,236 32,154 62,68" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
+
+            <!-- Responsive Living Contour Waves -->
+            <path class="living-wave wave-1" d="M 62,68 Q 140,40 232,78 T 248,178 T 184,242 T 82,236 T 32,154 Z" stroke="currentColor" stroke-width="1.4" fill="none" />
+            <path class="living-wave wave-2" d="M 140,50 Q 215,85 228,165 T 168,220 T 95,215 T 52,145 T 78,82 Z" stroke="currentColor" stroke-width="1" fill="none" />
+
+            <!-- Corner registration crosses / dimension ticks -->
+            <g class="corner-nodes">
+              <path class="plot-node" d="M 136,32 L 144,32 M 140,28 L 140,36" stroke="currentColor" stroke-width="1.2" />
+              <path class="plot-node" d="M 228,78 L 236,78 M 232,74 L 232,82" stroke="currentColor" stroke-width="1.2" />
+              <path class="plot-node" d="M 244,178 L 252,178 M 248,174 L 248,182" stroke="currentColor" stroke-width="1.2" />
+              <path class="plot-node" d="M 180,242 L 188,242 M 184,238 L 184,246" stroke="currentColor" stroke-width="1.2" />
+              <path class="plot-node" d="M 78,236 L 86,236 M 82,232 L 82,240" stroke="currentColor" stroke-width="1.2" />
+              <path class="plot-node" d="M 28,154 L 36,154 M 32,150 L 32,158" stroke="currentColor" stroke-width="1.2" />
+              <path class="plot-node" d="M 58,68 L 66,68 M 62,64 L 62,72" stroke="currentColor" stroke-width="1.2" />
+            </g>
+
+            <!-- Cardinal technical annotations -->
+            <text x="140" y="14" class="plan-label" text-anchor="middle">N 00°00'W</text>
+            <text x="268" y="144" class="plan-label" text-anchor="start">E</text>
+            <text x="140" y="274" class="plan-label" text-anchor="middle">S</text>
+            <text x="12" y="144" class="plan-label" text-anchor="end">W</text>
+          </svg>
+
+          <!-- Center architectural monogram stamp -->
+          <div class="architectural-mark" id="architectural-mark" title="Nova Agent Core">
+            <span class="mark-letter">N</span>
+          </div>
+        </div>
+
+        <div class="voice-copy">
+          <h2 class="agent-status" id="agent-status">Ready when you are</h2>
+          <p class="agent-substatus" id="agent-substatus">Nova will greet you as soon as you connect.</p>
+        </div>
+      </div>
+
+      <!-- Call controls -->
+      <div class="controls" role="group" aria-label="Call Controls">
+        <button class="ctrl-btn ctrl-secondary" id="mute-btn" disabled title="Mute microphone" aria-label="Mute microphone">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3Z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>
+          <span>Mute</span>
+        </button>
+
+        <button class="ctrl-btn ctrl-primary" id="call-btn" aria-label="Start call">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.4 21 3 13.6 3 4.6c0-.6.4-1 1-1H8c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.5.1.4 0 .8-.2 1L6.6 10.8Z"/></svg>
+          <span id="call-btn-label">Start call</span>
+        </button>
+
+        <button class="ctrl-btn ctrl-secondary" id="reconnect-btn" hidden title="Reconnect" aria-label="Reconnect">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M4 4v6h6M20 20v-6h-6"/><path d="M20 10a8 8 0 0 0-14.6-4.6M4 14a8 8 0 0 0 14.6 4.6"/></svg>
+          <span>Reconnect</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ---------- RIGHT: Context Panel (Tabs & Details) ---------- -->
+    <section class="pane pane-context" aria-label="Consultation Context and Results">
+
+      <!-- Viewing booking confirmation (pinned when scheduled) -->
+      <div class="booking-card" id="booking-card" hidden role="region" aria-label="Scheduled Viewing Confirmation"></div>
+
+      <!-- Navigation Tabs -->
+      <nav class="tabs" id="tabs" role="tablist" aria-label="Consultation Navigation">
+        <button class="tab active" data-tab="transcript" role="tab" id="tab-transcript" aria-selected="true" aria-controls="panel-transcript">
+          Transcript
+        </button>
+        <button class="tab" data-tab="properties" role="tab" id="tab-properties" aria-selected="false" aria-controls="panel-properties">
+          Properties
+          <span class="tab-count" id="properties-count" hidden aria-label="Discovered property count">0</span>
+        </button>
+        <button class="tab" data-tab="activity" role="tab" id="tab-activity" aria-selected="false" aria-controls="panel-activity">
+          Activity
+        </button>
+      </nav>
+
+      <div class="tab-panels">
+
+        <!-- TRANSCRIPT TAB -->
+        <div class="tab-panel active" id="panel-transcript" role="tabpanel" aria-labelledby="tab-transcript">
+          <div class="transcript" id="transcript">
+            <div class="empty-state" id="transcript-empty">
+              <div class="empty-icon" aria-hidden="true">💬</div>
+              <p class="empty-title">Ready for consultation</p>
+              <p class="empty-desc">Your conversation with Nova will appear here as a clean consultation record as you speak.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROPERTIES TAB -->
+        <div class="tab-panel" id="panel-properties" role="tabpanel" aria-labelledby="tab-properties">
+          <div class="properties-toolbar" id="properties-toolbar" hidden>
+            <div class="properties-meta-left">
+              <span class="properties-total" id="properties-total">0 properties found</span>
+              <span class="properties-sublabel">Discovered during this consultation</span>
+            </div>
+            <label class="properties-sort-label">
+              <span>Sort by</span>
+              <select class="properties-sort" id="properties-sort" aria-label="Sort properties">
+                <option value="recommended">Recommended matches</option>
+                <option value="recent">Recently found</option>
+                <option value="price_low">Price: low to high</option>
+                <option value="price_high">Price: high to low</option>
+                <option value="bedrooms">Most bedrooms</option>
+              </select>
+            </label>
+          </div>
+          <div class="properties" id="properties">
+            <div class="empty-state" id="properties-empty">
+              <div class="empty-icon" aria-hidden="true">🏡</div>
+              <p class="empty-title">No properties discovered yet</p>
+              <p class="empty-desc">Tell Nova your preferred locations, budget, and bedroom requirements. Properties found will be organized here by area.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY TAB -->
+        <div class="tab-panel" id="panel-activity" role="tabpanel" aria-labelledby="tab-activity">
+          <div class="activity" id="activity">
+            <div class="empty-state" id="activity-empty">
+              <div class="empty-icon" aria-hidden="true">⚡</div>
+              <p class="empty-title">Consultation activity</p>
+              <p class="empty-desc">Nova's background actions (searching property databases, checking availability, comparing features) will be logged here.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ PROPERTY DETAIL MODAL (Frame 6) ============ -->
+  <div class="property-modal-overlay" id="property-modal-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="modal-property-title">
+    <div class="property-modal-card" id="property-modal-card">
+      <div class="property-modal-header">
+        <div class="property-modal-title-group">
+          <span class="property-modal-kicker" id="modal-property-kicker">Listing Detail</span>
+          <h2 class="property-modal-title" id="modal-property-title">Property Details</h2>
+          <span class="property-modal-location" id="modal-property-location">Location</span>
+        </div>
+        <button class="modal-close-btn" id="modal-close-btn" aria-label="Close property details">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="property-modal-body" id="modal-property-body">
+        <!-- Rendered dynamically in app.js with gallery, specs grid, description, features, etc. -->
+      </div>
+
+      <div class="property-modal-footer">
+        <button class="ctrl-btn ctrl-secondary" id="modal-back-btn">
+          <span>Back to consultation</span>
+        </button>
+        <a href="#" target="_blank" rel="noopener noreferrer" class="ctrl-btn ctrl-primary" id="modal-external-link">
+          <span>View original listing ↗</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CALL SUMMARY (Shown after call ends) ============ -->
+  <div class="summary-overlay" id="summary-overlay" hidden role="dialog" aria-modal="true" aria-labelledby="summary-title">
+    <div class="summary-card">
+      <div class="summary-head">
+        <span class="summary-eyebrow">Consultation Complete</span>
+        <h1 id="summary-title">Executive Summary</h1>
+        <p class="summary-duration" id="summary-duration">Duration — 00:00</p>
+      </div>
+
+      <div class="summary-body" id="summary-body">
+        <!-- Filled dynamically -->
+      </div>
+
+      <div class="summary-actions">
+        <button class="ctrl-btn ctrl-secondary" id="download-summary-btn">
+          <svg viewBox="0 0 24 24" class="icon" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg>
+          <span>Download summary</span>
+        </button>
+        <button class="ctrl-btn ctrl-primary" id="new-call-btn">
+          <span>Start new call</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+  <!-- Audio playback element -->
+  <audio id="remoteAudio" autoplay playsinline></audio>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
