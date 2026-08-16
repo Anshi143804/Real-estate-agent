@@ -1,3 +1,5 @@
+import CONFIG from "./config.js";
+
 const $ = (id) => document.getElementById(id);
 
 function escapeHtml(str) {
